@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "FreshTools",
+  "version": "1.0.0",
+  "description": "Copia a conversa aberta no Freshdesk/Freshchat, identificando mensagens do agente e do cliente.",
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png"
+  },
+  "action": {
+    "default_title": "FreshTools",
+    "default_icon": {
+      "48": "icon-48.png",
+      "96": "icon-96.png",
+      "128": "icon-128.png"
+    }
+  },
+  "permissions": ["clipboardWrite"],
+  "host_permissions": [
+    "https://*.freshdesk.com/*",
+    "https://*.freshchat.com/*",
+    "https://*.freshworks.com/*",
+    "https://*.myfreshworks.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.freshdesk.com/*",
+        "https://*.freshchat.com/*",
+        "https://*.freshworks.com/*",
+        "https://*.myfreshworks.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "@freshtools.vitor-tinelli",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  }
+}
