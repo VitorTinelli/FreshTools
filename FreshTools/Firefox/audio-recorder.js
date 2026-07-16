@@ -6,8 +6,24 @@
   const MAX_FILE_SIZE = 25 * 1024 * 1024;
   let session = null;
 
-  const icon = (path) =>
-    `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
+  function icon(pathData) {
+    const namespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(namespace, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const path = document.createElementNS(namespace, "path");
+    path.setAttribute("d", pathData);
+    svg.append(path);
+    return svg;
+  }
+
+  function element(tag, className, attributes = {}) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, value));
+    return node;
+  }
 
   function findSendButton() {
     const testedButton = document.querySelector('[data-test-fc-send-button="root"]');
@@ -107,32 +123,38 @@
     panel.className = "ft-audio-panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Gravador de áudio");
-    panel.innerHTML = `
-      <div class="ft-audio-header">
-        <span class="ft-audio-status">Solicitando microfone...</span>
-        <button type="button" class="ft-audio-close" title="Cancelar" aria-label="Cancelar">×</button>
-      </div>
-      <div class="ft-audio-time">00:00</div>
-      <div class="ft-audio-recording-controls">
-        <button type="button" class="ft-audio-control ft-audio-pause" title="Pausar" aria-label="Pausar">
-          ${icon("M6 19h4V5H6v14zm8-14v14h4V5h-4z")}
-        </button>
-        <button type="button" class="ft-audio-control ft-audio-stop" title="Parar" aria-label="Parar">
-          ${icon("M6 6h12v12H6z")}
-        </button>
-      </div>
-      <div class="ft-audio-preview" hidden>
-        <audio controls preload="metadata"></audio>
-        <div class="ft-audio-preview-actions">
-          <button type="button" class="ft-audio-control ft-audio-attach" title="Adicionar como anexo" aria-label="Adicionar como anexo">
-            ${icon("M16.5 6.5v10.75a4.25 4.25 0 0 1-8.5 0V5.5a3 3 0 0 1 6 0v10.75a1.75 1.75 0 0 1-3.5 0V6.5H12v9.75a.25.25 0 0 0 .5 0V5.5a1.5 1.5 0 0 0-3 0v11.75a2.75 2.75 0 0 0 5.5 0V6.5h1.5z")}
-          </button>
-          <button type="button" class="ft-audio-control ft-audio-delete" title="Excluir" aria-label="Excluir">
-            ${icon("M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z")}
-          </button>
-        </div>
-      </div>
-      <div class="ft-audio-error" role="alert" hidden></div>`;
+    const header = element("div", "ft-audio-header");
+    const status = element("span", "ft-audio-status");
+    status.textContent = "Solicitando microfone...";
+    const close = element("button", "ft-audio-close",
+      { type: "button", title: "Cancelar", "aria-label": "Cancelar" });
+    close.textContent = "×";
+    header.append(status, close);
+
+    const time = element("div", "ft-audio-time");
+    time.textContent = "00:00";
+    const recordingControls = element("div", "ft-audio-recording-controls");
+    const pause = element("button", "ft-audio-control ft-audio-pause",
+      { type: "button", title: "Pausar", "aria-label": "Pausar" });
+    pause.append(icon("M6 19h4V5H6v14zm8-14v14h4V5h-4z"));
+    const stop = element("button", "ft-audio-control ft-audio-stop",
+      { type: "button", title: "Parar", "aria-label": "Parar" });
+    stop.append(icon("M6 6h12v12H6z"));
+    recordingControls.append(pause, stop);
+
+    const preview = element("div", "ft-audio-preview", { hidden: "" });
+    const audio = element("audio", "", { controls: "", preload: "metadata" });
+    const previewActions = element("div", "ft-audio-preview-actions");
+    const attach = element("button", "ft-audio-control ft-audio-attach",
+      { type: "button", title: "Adicionar como anexo", "aria-label": "Adicionar como anexo" });
+    attach.append(icon("M16.5 6.5v10.75a4.25 4.25 0 0 1-8.5 0V5.5a3 3 0 0 1 6 0v10.75a1.75 1.75 0 0 1-3.5 0V6.5H12v9.75a.25.25 0 0 0 .5 0V5.5a1.5 1.5 0 0 0-3 0v11.75a2.75 2.75 0 0 0 5.5 0V6.5h1.5z"));
+    const remove = element("button", "ft-audio-control ft-audio-delete",
+      { type: "button", title: "Excluir", "aria-label": "Excluir" });
+    remove.append(icon("M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"));
+    previewActions.append(attach, remove);
+    preview.append(audio, previewActions);
+    const error = element("div", "ft-audio-error", { role: "alert", hidden: "" });
+    panel.append(header, time, recordingControls, preview, error);
     document.body.appendChild(panel);
     positionPanel(button, panel);
     return panel;
@@ -200,12 +222,12 @@
           current.recorder.pause();
           panel.querySelector(".ft-audio-status").textContent = "Pausado";
           control.title = control.ariaLabel = "Continuar";
-          control.innerHTML = icon("M8 5v14l11-7z");
+          control.replaceChildren(icon("M8 5v14l11-7z"));
         } else if (current.recorder.state === "paused") {
           current.recorder.resume();
           panel.querySelector(".ft-audio-status").textContent = "Gravando";
           control.title = control.ariaLabel = "Pausar";
-          control.innerHTML = icon("M6 19h4V5H6v14zm8-14v14h4V5h-4z");
+          control.replaceChildren(icon("M6 19h4V5H6v14zm8-14v14h4V5h-4z"));
         }
       });
       panel.querySelector(".ft-audio-stop").addEventListener("click", () => {
@@ -247,7 +269,7 @@
     button.className = "ft-audio-recorder-button";
     button.title = "Gravar áudio";
     button.setAttribute("aria-label", button.title);
-    button.innerHTML = icon("M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z");
+    button.append(icon("M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"));
     button.addEventListener("click", () => start(button));
     return button;
   }
