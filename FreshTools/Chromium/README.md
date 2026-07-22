@@ -48,4 +48,4 @@ Para distribuição permanente no Firefox, compacte os arquivos e envie o pacote
 5. Use o clipe para adicioná-lo ao anexo nativo do Freshchat ou a lixeira para excluir.
 6. Confira o anexo e clique em **Send DM**. A extensão nunca envia automaticamente.
 
-O áudio é processado localmente na memória do navegador. Ele só é entregue ao Freshchat após uma ação explícita no botão de clipe. Firefox normalmente gera OGG/Opus; navegadores Chromium normalmente geram WebM/Opus. O limite aplicado é de 25 MB.
+O áudio é processado localmente na memória do navegador. No Chromium, a captura usa AudioWorklet e o OGG/Opus é finalizado em Worker. O áudio só é entregue ao Freshchat após uma ação explícita no botão de clipe; se a integridade ou a duração não puder ser confirmada, ele é descartado. Firefox continua usando OGG/Opus nativo. O limite aplicado é de 25 MB.

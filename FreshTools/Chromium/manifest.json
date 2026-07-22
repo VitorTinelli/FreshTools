@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FreshTools",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Um pacote de ferramentas úteis para o Freshchat",
   "icons": {
     "48": "icon-48.png",
@@ -47,8 +47,8 @@
       ],
       "js": [
         "content.js",
-        "vendor/OpusMediaRecorder.umd.js",
         "vendor/encoderWorker.umd.js",
+        "audio-integrity.js",
         "audio-recorder.js",
         "audio-player.js"
       ],
@@ -63,7 +63,8 @@
     {
       "resources": [
         "vendor/encoderWorker.umd.js",
-        "vendor/OggOpusEncoder.wasm"
+        "vendor/OggOpusEncoder.wasm",
+        "audio-worklet.js"
       ],
       "matches": [
         "https://*.freshdesk.com/*",
