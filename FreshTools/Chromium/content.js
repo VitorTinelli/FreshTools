@@ -237,6 +237,7 @@
 
   let scheduled = false;
   const observer = new MutationObserver(() => {
+    if (document.documentElement.dataset.ftAudioRecording === "true") return;
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => {
