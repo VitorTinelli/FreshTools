@@ -39,13 +39,15 @@ Para distribuição permanente no Firefox, compacte os arquivos e envie o pacote
 3. Aguarde enquanto a extensão salta rapidamente ao topo e carrega os lotes anteriores do histórico. O progresso aparece ao passar o mouse sobre o ícone.
 4. A extensão copia as mensagens e retorna a conversa à posição anterior.
 
-## Gravar e anexar áudio
+## Gravar e compartilhar áudio
 
 1. Abra uma conversa e localize o botão de microfone ao lado de **Send DM**.
 2. Clique no microfone e permita o acesso quando o navegador solicitar.
 3. Durante a gravação, use os botões para pausar/continuar ou parar.
 4. Depois de parar, ouça o áudio no player.
-5. Use o clipe para adicioná-lo ao anexo nativo do Freshchat ou a lixeira para excluir.
-6. Confira o anexo e clique em **Send DM**. A extensão nunca envia automaticamente.
+5. Use o clipe para adicioná-lo ao anexo nativo do Freshchat, a nuvem para enviar ao Vocaroo e inserir o link na mensagem, ou a lixeira para excluir.
+6. Confira o anexo ou o link e clique em **Send DM**. A extensão nunca envia automaticamente.
 
-O áudio é processado localmente na memória do navegador. No Chromium, a captura usa AudioWorklet e o OGG/Opus é finalizado em Worker. O áudio só é entregue ao Freshchat após uma ação explícita no botão de clipe; se a integridade ou a duração não puder ser confirmada, ele é descartado. Firefox continua usando OGG/Opus nativo. O limite aplicado é de 25 MB.
+O áudio é processado localmente na memória do navegador. No Chromium, a captura usa AudioWorklet e o OGG/Opus é finalizado em Worker. O áudio só sai da memória após uma ação explícita: o clipe o entrega ao Freshchat e a nuvem o envia ao Vocaroo. Se a integridade ou a duração não puder ser confirmada, ele é descartado. Firefox continua usando OGG/Opus nativo. O limite aplicado é de 25 MB.
+
+A integração com o Vocaroo usa o protocolo público empregado pelo próprio site, que não possui uma API oficialmente documentada. Mudanças feitas pelo Vocaroo podem exigir uma atualização da extensão. Os links são externos e estão sujeitos à disponibilidade, privacidade e retenção do serviço.

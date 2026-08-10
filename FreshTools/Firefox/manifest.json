@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FreshTools",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Um pacote de ferramentas úteis para o Freshchat",
   "icons": {
     "48": "icon-48.png",
@@ -45,7 +45,7 @@
         "https://*.freshworks.com/*",
         "https://*.myfreshworks.com/*"
       ],
-      "js": ["content.js", "audio-recorder.js", "audio-player.js"],
+      "js": ["content.js", "vocaroo-upload.js", "audio-recorder.js", "audio-player.js"],
       "css": ["content.css", "audio-recorder.css", "audio-player.css"],
       "run_at": "document_idle"
     }

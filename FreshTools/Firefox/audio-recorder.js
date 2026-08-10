@@ -59,6 +59,7 @@
       current.recorder.stop();
     }
     stopTracks(current);
+    current.uploadController?.abort();
     if (current.url) URL.revokeObjectURL(current.url);
     current.panel.remove();
     delete current.button.dataset.state;
@@ -102,10 +103,92 @@
     await new Promise((resolve) => setTimeout(resolve, 350));
   }
 
+  function findMessageEditor() {
+    const selector = 'textarea, [contenteditable="true"][role="textbox"], [contenteditable="true"]';
+    const send = findSendButton();
+    let container = send?.parentElement || null;
+    for (let depth = 0; container && depth < 8; depth += 1) {
+      const editors = Array.from(container.querySelectorAll(selector)).filter((editor) => {
+        const rect = editor.getBoundingClientRect();
+        return !editor.closest(`#${PANEL_ID}`) && rect.width > 0 && rect.height > 0;
+      });
+      if (editors.length) return editors.at(-1);
+      container = container.parentElement;
+    }
+    return Array.from(document.querySelectorAll(selector)).filter((editor) => {
+      const rect = editor.getBoundingClientRect();
+      return !editor.closest(`#${PANEL_ID}`) && rect.width > 0 && rect.height > 0;
+    }).at(-1) || null;
+  }
+
+  function insertMessageText(text) {
+    const editor = findMessageEditor();
+    if (!editor) throw new Error("Campo de mensagem do Freshchat não encontrado.");
+    const existing = editor instanceof HTMLTextAreaElement ? editor.value : (editor.innerText || "");
+    const value = `${existing && !/\s$/.test(existing) ? " " : ""}${text}`;
+    editor.focus();
+    if (editor instanceof HTMLTextAreaElement) {
+      const start = editor.selectionStart ?? editor.value.length;
+      const end = editor.selectionEnd ?? start;
+      editor.setRangeText(value, start, end, "end");
+      editor.dispatchEvent(new InputEvent("input", {
+        bubbles: true, composed: true, inputType: "insertText", data: value
+      }));
+      return;
+    }
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    if (!document.execCommand("insertText", false, value)) {
+      range.insertNode(document.createTextNode(value));
+      range.collapse(false);
+      editor.dispatchEvent(new InputEvent("input", {
+        bubbles: true, composed: true, inputType: "insertText", data: value
+      }));
+    }
+  }
+
+  async function uploadToVocaroo(current) {
+    if (current.blob.size > MAX_FILE_SIZE) throw new Error("O áudio ultrapassou 25 MB.");
+    current.uploadController = new AbortController();
+    const url = await globalThis.FreshToolsVocaroo.upload(current.blob, {
+      signal: current.uploadController.signal,
+      onPhase: (phase) => {
+        if (phase === "connecting") setUploadUi(current, "Conectando ao Vocaroo...");
+        if (phase === "uploading") setUploadUi(current, "Enviando áudio ao Vocaroo...", 0);
+        if (phase === "processing") setUploadUi(current, "Upload concluído. Gerando link...");
+      },
+      onProgress: (uploaded, total) => {
+        const percent = Math.round(uploaded / total * 100);
+        setUploadUi(current, `Enviando áudio ao Vocaroo... ${percent}%`, percent);
+      }
+    });
+    insertMessageText(url);
+  }
+
   function showError(current, message) {
     const error = current.panel.querySelector(".ft-audio-error");
     error.textContent = message;
     error.hidden = false;
+  }
+
+  function setUploadUi(current, label, percent = null) {
+    const state = current.panel.querySelector(".ft-audio-upload-state");
+    const progress = state.querySelector("progress");
+    current.panel.dataset.mode = "uploading";
+    state.hidden = false;
+    state.querySelector(".ft-audio-upload-label").textContent = label;
+    current.panel.querySelector(".ft-audio-status").textContent = label;
+    if (Number.isFinite(percent)) progress.value = percent;
+    else progress.removeAttribute("value");
+  }
+
+  function resetUploadUi(current) {
+    delete current.panel.dataset.mode;
+    current.panel.querySelector(".ft-audio-upload-state").hidden = true;
   }
 
   function showPreview(current) {
@@ -148,11 +231,23 @@
     const attach = element("button", "ft-audio-control ft-audio-attach",
       { type: "button", title: "Adicionar como anexo", "aria-label": "Adicionar como anexo" });
     attach.append(icon("M16.5 6.5v10.75a4.25 4.25 0 0 1-8.5 0V5.5a3 3 0 0 1 6 0v10.75a1.75 1.75 0 0 1-3.5 0V6.5H12v9.75a.25.25 0 0 0 .5 0V5.5a1.5 1.5 0 0 0-3 0v11.75a2.75 2.75 0 0 0 5.5 0V6.5h1.5z"));
+    const vocaroo = element("button", "ft-audio-control ft-audio-vocaroo",
+      { type: "button", title: "Enviar ao Vocaroo e inserir link", "aria-label": "Enviar ao Vocaroo e inserir link" });
+    vocaroo.append(icon("M19.35 10.04A7.49 7.49 0 0 0 5.5 8a6 6 0 0 0 .5 12h13a5 5 0 0 0 .35-9.96zM13 13v4h-2v-4H8l4-4 4 4h-3z"));
     const remove = element("button", "ft-audio-control ft-audio-delete",
       { type: "button", title: "Excluir", "aria-label": "Excluir" });
     remove.append(icon("M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"));
-    previewActions.append(attach, remove);
-    preview.append(audio, previewActions);
+    previewActions.append(attach, vocaroo, remove);
+    const uploadState = element("div", "ft-audio-upload-state", { hidden: "", role: "status", "aria-live": "polite" });
+    const uploadHeading = element("div", "ft-audio-upload-heading");
+    const spinner = element("span", "ft-audio-spinner", { "aria-hidden": "true" });
+    const uploadLabel = element("span", "ft-audio-upload-label");
+    const uploadProgress = element("progress", "ft-audio-upload-progress", { max: "100", value: "0" });
+    const cancelUpload = element("button", "ft-audio-upload-cancel", { type: "button" });
+    cancelUpload.textContent = "Cancelar envio";
+    uploadHeading.append(spinner, uploadLabel);
+    uploadState.append(uploadHeading, uploadProgress, cancelUpload);
+    preview.append(audio, previewActions, uploadState);
     const error = element("div", "ft-audio-error", { role: "alert", hidden: "" });
     panel.append(header, time, recordingControls, preview, error);
     document.body.appendChild(panel);
@@ -171,6 +266,10 @@
     session = current;
     panel.querySelector(".ft-audio-close").addEventListener("click", discard);
     panel.querySelector(".ft-audio-delete").addEventListener("click", discard);
+    panel.querySelector(".ft-audio-upload-cancel").addEventListener("click", () => {
+      panel.querySelector(".ft-audio-status").textContent = "Cancelando envio...";
+      current.uploadController?.abort();
+    });
 
     try {
       if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
@@ -248,6 +347,30 @@
           showError(current, error.message);
           panel.querySelector(".ft-audio-status").textContent = "Não foi possível anexar";
           control.disabled = false;
+        }
+      });
+      panel.querySelector(".ft-audio-vocaroo").addEventListener("click", async () => {
+        if (!current.blob || current.uploading) return;
+        const controls = panel.querySelectorAll(".ft-audio-preview-actions button");
+        controls.forEach((control) => { control.disabled = true; });
+        current.uploading = true;
+        panel.querySelector(".ft-audio-error").hidden = true;
+        setUploadUi(current, "Preparando envio ao Vocaroo...", 0);
+        try {
+          await uploadToVocaroo(current);
+          discard();
+        } catch (error) {
+          current.uploading = false;
+          current.uploadController = null;
+          resetUploadUi(current);
+          if (error.name === "AbortError") {
+            panel.querySelector(".ft-audio-status").textContent = "Envio cancelado — gravação pronta";
+            controls.forEach((control) => { control.disabled = false; });
+            return;
+          }
+          showError(current, error.message);
+          panel.querySelector(".ft-audio-status").textContent = "Não foi possível gerar o link";
+          controls.forEach((control) => { control.disabled = false; });
         }
       });
     } catch (error) {

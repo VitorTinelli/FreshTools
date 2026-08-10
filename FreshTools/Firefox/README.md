@@ -4,7 +4,8 @@ Extensão WebExtension para Freshdesk e Freshchat. Inclui:
 
 - cópia da conversa com mensagens separadas entre agente e cliente;
 - carregamento rápido do histórico anterior;
-- gravação, pausa, reprodução e anexação de áudio ao lado de **Send DM**.
+- gravação, pausa e reprodução de áudio ao lado de **Send DM**;
+- opção de anexar ao Freshchat ou enviar ao Vocaroo e inserir o link na mensagem.
 
 ## Áudio
 
@@ -12,8 +13,13 @@ Esta edição usa exclusivamente o `MediaRecorder` nativo do Firefox com
 `audio/ogg;codecs=opus`. Ela não contém WebAssembly, conversores, código de
 encoder ou bibliotecas de terceiros.
 
-O áudio permanece na memória local até o usuário clicar no clipe para anexá-lo.
-A extensão nunca envia a mensagem automaticamente.
+O áudio permanece na memória local até o usuário clicar no clipe para anexá-lo ou
+na nuvem para enviá-lo ao Vocaroo. A extensão insere o link retornado no campo de
+mensagem, mas nunca envia a mensagem automaticamente.
+
+A integração usa o protocolo público empregado pelo site do Vocaroo, que não tem
+uma API oficialmente documentada. Mudanças no serviço podem exigir uma atualização
+da extensão. Os links estão sujeitos às regras de disponibilidade e retenção do Vocaroo.
 
 ## Instalação temporária
 
