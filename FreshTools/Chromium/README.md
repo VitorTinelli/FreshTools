@@ -45,8 +45,16 @@ Para distribuição permanente no Firefox, compacte os arquivos e envie o pacote
 2. Clique no microfone e permita o acesso quando o navegador solicitar.
 3. Durante a gravação, use os botões para pausar/continuar ou parar.
 4. Depois de parar, ouça o áudio no player.
-5. Use o clipe para adicioná-lo ao anexo nativo do Freshchat, a nuvem para enviar ao Vocaroo e inserir o link na mensagem, ou a lixeira para excluir.
-6. Confira o anexo ou o link e clique em **Send DM**. A extensão nunca envia automaticamente.
+5. Use o clipe para adicioná-lo ao anexo nativo do Freshchat, a nuvem para enviar ao Vocaroo e copiar o link, ou a lixeira para excluir.
+6. Quando usar o Vocaroo, cole manualmente o link copiado onde desejar. A extensão não anexa o áudio nem altera o campo de mensagem.
+
+Os anexos de áudio que já aparecem na conversa — enviados pelo agente ou pelo cliente — também recebem a ação **Enviar ao Vocaroo**. Durante o processo, o botão mostra o download, o progresso do upload e permite cancelar. Ao concluir, o link é copiado e uma notificação permanece no canto superior direito por cinco segundos.
+
+Formatos de vídeo, como MP4, 3GP, MOV, AVI e MKV, não recebem a ação de upload e também são recusados pela validação antes do envio.
+
+## Reproduzir vídeos
+
+Anexos de vídeo enviados pelo agente ou pelo cliente recebem a ação **Ver vídeo**. O vídeo abre em um player compacto dentro da conversa, com controles para ampliar, reduzir e entrar em tela cheia. A reprodução depende dos formatos e codecs aceitos pelo navegador.
 
 O áudio é processado localmente na memória do navegador. No Chromium, a captura usa AudioWorklet e o OGG/Opus é finalizado em Worker. O áudio só sai da memória após uma ação explícita: o clipe o entrega ao Freshchat e a nuvem o envia ao Vocaroo. Se a integridade ou a duração não puder ser confirmada, ele é descartado. Firefox continua usando OGG/Opus nativo. O limite aplicado é de 25 MB.
 

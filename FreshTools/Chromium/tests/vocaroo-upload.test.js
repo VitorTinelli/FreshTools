@@ -86,3 +86,17 @@ test("returns the finalized link when the optional status endpoint fails", async
   );
   assert.equal(url, "https://voca.ro/statusfails");
 });
+
+test("rejects video blobs before contacting Vocaroo", async () => {
+  let contacted = false;
+  const uploader = loadUploader(async () => {
+    contacted = true;
+    throw new Error("fetch should not run");
+  });
+
+  await assert.rejects(
+    uploader.upload(new Blob([new Uint8Array([1])], { type: "video/mp4" })),
+    /Formatos de vídeo/
+  );
+  assert.equal(contacted, false);
+});

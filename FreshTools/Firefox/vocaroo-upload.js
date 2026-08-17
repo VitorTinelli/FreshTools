@@ -82,6 +82,9 @@
 
   async function upload(blob, { signal, onProgress, onPhase } = {}) {
     if (!(blob instanceof Blob) || !blob.size) throw new Error("Não há áudio para enviar.");
+    if (/^video\//i.test(blob.type)) {
+      throw new Error("Formatos de vídeo não podem ser enviados ao Vocaroo.");
+    }
     onPhase?.("connecting");
     const server = await findUploadUrl(signal);
     const baseUrl = `${server}/${uploadId()}`;

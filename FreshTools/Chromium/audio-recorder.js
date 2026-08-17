@@ -160,54 +160,6 @@
     await new Promise((resolve) => setTimeout(resolve, 350));
   }
 
-  function findMessageEditor() {
-    const selector = 'textarea, [contenteditable="true"][role="textbox"], [contenteditable="true"]';
-    const send = findSendButton();
-    let container = send?.parentElement || null;
-    for (let depth = 0; container && depth < 8; depth += 1) {
-      const editors = Array.from(container.querySelectorAll(selector)).filter((editor) => {
-        const rect = editor.getBoundingClientRect();
-        return !editor.closest(`#${PANEL_ID}`) && rect.width > 0 && rect.height > 0;
-      });
-      if (editors.length) return editors.at(-1);
-      container = container.parentElement;
-    }
-    return Array.from(document.querySelectorAll(selector)).filter((editor) => {
-      const rect = editor.getBoundingClientRect();
-      return !editor.closest(`#${PANEL_ID}`) && rect.width > 0 && rect.height > 0;
-    }).at(-1) || null;
-  }
-
-  function insertMessageText(text) {
-    const editor = findMessageEditor();
-    if (!editor) throw new Error("Campo de mensagem do Freshchat não encontrado.");
-    const existing = editor instanceof HTMLTextAreaElement ? editor.value : (editor.innerText || "");
-    const value = `${existing && !/\s$/.test(existing) ? " " : ""}${text}`;
-    editor.focus();
-    if (editor instanceof HTMLTextAreaElement) {
-      const start = editor.selectionStart ?? editor.value.length;
-      const end = editor.selectionEnd ?? start;
-      editor.setRangeText(value, start, end, "end");
-      editor.dispatchEvent(new InputEvent("input", {
-        bubbles: true, composed: true, inputType: "insertText", data: value
-      }));
-      return;
-    }
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(editor);
-    range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    if (!document.execCommand("insertText", false, value)) {
-      range.insertNode(document.createTextNode(value));
-      range.collapse(false);
-      editor.dispatchEvent(new InputEvent("input", {
-        bubbles: true, composed: true, inputType: "insertText", data: value
-      }));
-    }
-  }
-
   async function uploadToVocaroo(current) {
     if (current.blob.size > MAX_FILE_SIZE) throw new Error("O áudio ultrapassou 25 MB.");
     current.uploadController = new AbortController();
@@ -223,7 +175,7 @@
         setUploadUi(current, `Enviando áudio ao Vocaroo... ${percent}%`, percent);
       }
     });
-    insertMessageText(url);
+    await globalThis.FreshToolsVocarooFeedback.copyLink(url);
   }
 
   function createPanel(button) {
@@ -251,7 +203,7 @@
     const actions = element("div", "ft-audio-preview-actions");
     const attachButton = element("button", "ft-audio-control ft-audio-attach", { type: "button", title: "Adicionar como anexo", "aria-label": "Adicionar como anexo" });
     attachButton.append(icon("M16.5 6.5v10.75a4.25 4.25 0 0 1-8.5 0V5.5a3 3 0 0 1 6 0v10.75a1.75 1.75 0 0 1-3.5 0V6.5H12v9.75a.25.25 0 0 0 .5 0V5.5a1.5 1.5 0 0 0-3 0v11.75a2.75 2.75 0 0 0 5.5 0V6.5h1.5z"));
-    const vocarooButton = element("button", "ft-audio-control ft-audio-vocaroo", { type: "button", title: "Enviar ao Vocaroo e inserir link", "aria-label": "Enviar ao Vocaroo e inserir link" });
+    const vocarooButton = element("button", "ft-audio-control ft-audio-vocaroo", { type: "button", title: "Enviar ao Vocaroo e copiar link", "aria-label": "Enviar ao Vocaroo e copiar link" });
     vocarooButton.append(icon("M19.35 10.04A7.49 7.49 0 0 0 5.5 8a6 6 0 0 0 .5 12h13a5 5 0 0 0 .35-9.96zM13 13v4h-2v-4H8l4-4 4 4h-3z"));
     const remove = element("button", "ft-audio-control ft-audio-delete", { type: "button", title: "Excluir", "aria-label": "Excluir" });
     remove.append(icon("M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"));
