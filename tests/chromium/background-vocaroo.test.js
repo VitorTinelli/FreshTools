@@ -15,7 +15,7 @@ function loadBackground({ fetch, upload }) {
     URL,
     fetch,
     globalThis: null,
-    importScripts() {},
+    importScripts(path) { assert.equal(path, "../content/vocaroo-upload.js"); },
     setTimeout() { return 1; },
     clearTimeout() {},
     FreshToolsVocaroo: { upload },
@@ -36,7 +36,7 @@ function loadBackground({ fetch, upload }) {
     }
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Chromium/background.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/platforms/chromium/background/index.js", "utf8"), context);
   return { messages, requestListener, runtimeListener };
 }
 

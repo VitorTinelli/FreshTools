@@ -1,0 +1,17 @@
+{
+  "name": "freshtools",
+  "version": "1.2.1",
+  "private": true,
+  "description": "Extensão WebExtension para Freshdesk e Freshchat.",
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "build:chromium": "node scripts/build.mjs chromium",
+    "build:firefox": "node scripts/build.mjs firefox",
+    "test": "node scripts/test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,6 +1,6 @@
-*.zip
-*.xpi
-*.crx
-.DS_Store
-Thumbs.db
-icons/
+dist/
+node_modules/
+
+#AI
+.agents
+.codex

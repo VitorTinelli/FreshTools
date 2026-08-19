@@ -13,7 +13,7 @@ const context = {
   globalThis: null
 };
 context.globalThis = context;
-vm.runInNewContext(fs.readFileSync("Chromium/audio-integrity.js", "utf8"), context);
+vm.runInNewContext(fs.readFileSync("src/platforms/chromium/content/audio-integrity.js", "utf8"), context);
 
 function page(type, granule, sequence, body) {
   const header = new Uint8Array(28);
