@@ -41,7 +41,7 @@ test("captures a Firefox media response and uploads it to Vocaroo", async () => 
     }
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Firefox/background.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/platforms/firefox/background/index.js", "utf8"), context);
 
   const url = "https://fc-use1-00-files-bkt-00.s3.amazonaws.com/audio.ogg?signature=1";
   const armed = await runtimeListener(
@@ -106,7 +106,7 @@ test("downloads a customer audio directly instead of waiting for the media playe
     }
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Firefox/background.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/platforms/firefox/background/index.js", "utf8"), context);
 
   const started = await runtimeListener({
     type: "ft-upload-audio-url", id: "direct-audio",
@@ -144,7 +144,7 @@ test("falls back to the page media capture when Firefox blocks the direct downlo
     }
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Firefox/background.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/platforms/firefox/background/index.js", "utf8"), context);
   await runtimeListener({
     type: "ft-upload-audio-url", id: "network-fallback", url: "https://bucket.amazonaws.com/audio.ogg"
   }, { tab: { id: 7 } });

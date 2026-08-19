@@ -36,7 +36,7 @@ function loadFeedback(writeText) {
     }
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Chromium/vocaroo-feedback.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/common/content/vocaroo-feedback.js", "utf8"), context);
   return { feedback: context.FreshToolsVocarooFeedback, elements, timers };
 }
 

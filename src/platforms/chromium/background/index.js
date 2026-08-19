@@ -1,6 +1,6 @@
 "use strict";
 
-importScripts("vocaroo-upload.js");
+importScripts("../content/vocaroo-upload.js");
 
 const pendingTabs = new Map();
 const uploadJobs = new Map();

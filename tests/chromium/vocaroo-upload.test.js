@@ -19,7 +19,7 @@ function loadUploader(fetch) {
     clearTimeout
   };
   context.globalThis = context;
-  vm.runInNewContext(fs.readFileSync("Chromium/vocaroo-upload.js", "utf8"), context);
+  vm.runInNewContext(fs.readFileSync("src/common/content/vocaroo-upload.js", "utf8"), context);
   return context.FreshToolsVocaroo;
 }
 
