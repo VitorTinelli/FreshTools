@@ -4,9 +4,10 @@ Extensão WebExtension para Freshdesk e Freshchat, distribuída para Chromium e 
 
 ## Desenvolvimento
 
-Requer Node.js 20 ou superior. Não há dependências externas.
+Requer Node.js 20 ou superior. Instale as dependências de desenvolvimento antes do primeiro build:
 
 ```powershell
+npm install
 npm run check
 npm run build
 npm test

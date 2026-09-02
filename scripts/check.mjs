@@ -9,6 +9,7 @@ function manifestFiles(manifest) {
   return [
     ...(manifest.background?.scripts ?? []),
     manifest.background?.service_worker,
+    manifest.options_ui?.page,
     ...manifest.content_scripts.flatMap(({ js = [], css = [] }) => [...js, ...css]),
     ...(manifest.web_accessible_resources?.flatMap(({ resources = [] }) => resources) ?? []),
     ...Object.values(manifest.icons ?? {}),

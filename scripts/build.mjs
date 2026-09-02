@@ -15,6 +15,13 @@ for (const target of targets) {
   await mkdir(output, { recursive: true });
   await cp(resolve(root, "src", "common"), output, { recursive: true });
   await cp(resolve(root, "src", "platforms", target), output, { recursive: true });
+  await mkdir(resolve(output, "vendor"), { recursive: true });
+  await cp(resolve(root, "node_modules", "lucide", "dist", "umd", "lucide.min.js"), resolve(output, "vendor", "lucide.min.js"));
+  await cp(resolve(root, "node_modules", "lucide", "LICENSE"), resolve(output, "vendor", "lucide-LICENSE.txt"));
+  await mkdir(resolve(output, "flags"), { recursive: true });
+  await cp(resolve(root, "node_modules", "flag-icons", "flags", "4x3", "br.svg"), resolve(output, "flags", "br.svg"));
+  await cp(resolve(root, "node_modules", "flag-icons", "flags", "4x3", "us.svg"), resolve(output, "flags", "us.svg"));
+  await cp(resolve(root, "node_modules", "flag-icons", "LICENSE"), resolve(output, "vendor", "flag-icons-LICENSE.txt"));
   const manifest = await readFile(resolve(root, "src", "manifests", `${target}.json`), "utf8");
   await writeFile(resolve(output, "manifest.json"), manifest);
   console.log(`FreshTools: dist/${target} gerado.`);

@@ -1,62 +1,15 @@
 "use strict";
 
-importScripts("../content/vocaroo-upload.js");
+importScripts("../content/vocaroo-upload.js", "audio-pipeline.js", "welcome.js");
 
 const pendingTabs = new Map();
 const uploadJobs = new Map();
 const cancelledUploads = new Set();
 let nextRuleId = 1000;
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
-const VIDEO_EXTENSION = /\.(?:mp4|3gp|m4v|mov|avi|mkv|mpg|mpeg|ogv)(?:[?#]|$)/i;
-
-function findFileUrl(value) {
-  if (typeof value === "string") {
-    return /^(?:https?:|blob:)/i.test(value) && !/\/file\/download(?:\?|$)/i.test(value)
-      ? value : null;
-  }
-  if (!value || typeof value !== "object") return null;
-  for (const key of ["url", "fileUrl", "file_url", "downloadUrl", "download_url", "signedUrl", "signed_url"]) {
-    const found = findFileUrl(value[key]);
-    if (found) return found;
-  }
-  for (const child of Object.values(value)) {
-    const found = findFileUrl(child);
-    if (found) return found;
-  }
-  return null;
-}
+const { findFileUrl, downloadAndUpload } = globalThis.FreshToolsAudioPipeline;
 
 function sendToTab(tabId, message) {
   return chrome.tabs.sendMessage(tabId, message).catch(() => {});
-}
-
-async function downloadAudio(requestUrl, signal) {
-  let sourceUrl = requestUrl;
-  let response = await fetch(requestUrl, {
-    credentials: "include", redirect: "follow", signal
-  });
-  if (!response.ok) throw new Error(`Falha ao baixar o áudio (HTTP ${response.status}).`);
-
-  const contentType = response.headers.get("content-type") || "";
-  if (/json/i.test(contentType)) {
-    const url = findFileUrl(await response.json());
-    if (!url) throw new Error("URL final do áudio não encontrada na resposta.");
-    sourceUrl = url;
-    response = await fetch(url, { redirect: "follow", signal });
-    if (!response.ok) throw new Error(`Falha ao baixar o áudio (HTTP ${response.status}).`);
-  }
-
-  const resolvedType = response.headers.get("content-type") || "";
-  if (/^video\//i.test(resolvedType) || VIDEO_EXTENSION.test(sourceUrl)) {
-    throw new Error("Formatos de vídeo não podem ser enviados ao Vocaroo.");
-  }
-  const declaredSize = Number(response.headers.get("content-length"));
-  if (declaredSize > MAX_FILE_SIZE) throw new Error("O áudio ultrapassou 25 MB.");
-  const blob = await response.blob();
-  if (/^video\//i.test(blob.type)) throw new Error("Formatos de vídeo não podem ser enviados ao Vocaroo.");
-  if (!blob.size) throw new Error("O arquivo de áudio está vazio.");
-  if (blob.size > MAX_FILE_SIZE) throw new Error("O áudio ultrapassou 25 MB.");
-  return blob;
 }
 
 async function uploadResolvedAudio(tabId, pending, requestUrl) {
@@ -69,9 +22,7 @@ async function uploadResolvedAudio(tabId, pending, requestUrl) {
     if (cancelledUploads.delete(pending.id)) {
       throw new DOMException("Aborted", "AbortError");
     }
-    await notify({ phase: "downloading" });
-    const blob = await downloadAudio(requestUrl, controller.signal);
-    const url = await globalThis.FreshToolsVocaroo.upload(blob, {
+    const url = await downloadAndUpload(requestUrl, {
       signal: controller.signal,
       onPhase: (phase) => notify({ phase }),
       onProgress: (uploaded, total) => notify({
