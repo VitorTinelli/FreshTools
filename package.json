@@ -1,6 +1,6 @@
 {
   "name": "freshtools",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Extensão WebExtension para Freshdesk e Freshchat.",
   "scripts": {
@@ -13,5 +13,9 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "flag-icons": "^7.5.0",
+    "lucide": "^1.39.0"
   }
 }

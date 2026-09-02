@@ -15,7 +15,10 @@ function loadBackground({ fetch, upload }) {
     URL,
     fetch,
     globalThis: null,
-    importScripts(path) { assert.equal(path, "../content/vocaroo-upload.js"); },
+    importScripts(...paths) {
+      assert.deepEqual(paths, ["../content/vocaroo-upload.js", "audio-pipeline.js", "welcome.js"]);
+      vm.runInNewContext(fs.readFileSync("src/common/background/audio-pipeline.js", "utf8"), context);
+    },
     setTimeout() { return 1; },
     clearTimeout() {},
     FreshToolsVocaroo: { upload },
