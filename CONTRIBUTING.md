@@ -46,7 +46,7 @@ Mantenha em `src/common/` apenas arquivos com comportamento idêntico. Se uma AP
 
 - Não amplie permissões nem `host_permissions` sem justificar a necessidade e testar em ambos os manifestos.
 - Preserve o isolamento entre código injetado na página, content scripts e background.
-- Recursos exclusivos do Chromium, como seu encoder OGG/Opus, AudioWorklet de captura e `declarativeNetRequest`, não podem ser incluídos no pacote Firefox. O runtime WASM da transcrição é compartilhado e empacotado para os dois navegadores.
+- Recursos exclusivos do Chromium, como seu encoder OGG/Opus, AudioWorklet de captura e `declarativeNetRequest`, não podem ser incluídos no pacote Firefox.
 - Qualquer alteração no fluxo Vocaroo deve cobrir êxito, falha, cancelamento e arquivos de vídeo recusados.
 - Não introduza dependências externas ou downloads em tempo de execução sem aprovação explícita.
 - Preserve os avisos de licença em `src/platforms/chromium/` ao atualizar o encoder OGG/Opus.

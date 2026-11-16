@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FreshTools",
-  "version": "1.2.3",
+  "version": "1.2.3.1",
+  "version_name": "1.2.3-hf1",
   "description": "Um pacote de ferramentas úteis para o Freshchat",
   "icons": {
     "48": "icons/icon-48.png",
@@ -65,7 +66,6 @@
         "content/audio-integrity.js",
         "content/vocaroo-upload.js",
         "content/vocaroo-feedback.js",
-        "content/transcription.js",
         "content/audio-recorder.js",
         "content/audio-player.js",
         "content/video-player.js"
@@ -75,8 +75,7 @@
         "styles/audio-recorder.css",
         "styles/audio-player.css",
         "styles/video-player.css",
-        "styles/vocaroo-feedback.css",
-        "styles/transcription.css"
+        "styles/vocaroo-feedback.css"
       ],
       "run_at": "document_idle"
     }
@@ -90,17 +89,6 @@
         "vendor/encoderWorker.umd.js",
         "vendor/OggOpusEncoder.wasm",
         "audio-worklet.js"
-      ],
-      "matches": [
-        "https://*.freshdesk.com/*",
-        "https://*.freshchat.com/*",
-        "https://*.freshworks.com/*",
-        "https://*.myfreshworks.com/*"
-      ]
-    },
-    {
-      "resources": [
-        "transcription/frame.html"
       ],
       "matches": [
         "https://*.freshdesk.com/*",

@@ -27,7 +27,7 @@
     "Privacidade por padrão":"Privacy by default","Seus áudios ficam no navegador.":"Your audio stays in the browser.",
     "O processamento é local. Um áudio só é enviado ao Vocaroo quando você aciona explicitamente essa função.":"Processing happens locally. Audio is sent to Vocaroo only when you explicitly choose that action.",
     "O que há de novo":"What's new","Versão atual":"Current version","2 set 2026":"Sep 2, 2026",
-    "Cópia de conversas e transcrição":"Conversation copying and transcription","Cópia de conversas com notas completas, anexos, link do chat e nomes dos agentes.":"Conversation copying includes full notes, attachments, the chat link, and agent names.","Transcrição local de áudios em português.":"Local audio transcription in Portuguese.",
+    "Cópia de conversas":"Conversation copying","Cópia de conversas com notas completas, anexos, link do chat e nomes dos agentes.":"Conversation copying includes full notes, attachments, the chat link, and agent names.",
     "Experiência unificada e nova central":"Unified experience and new hub","Download e compartilhamento de áudios unificados no Chromium e Firefox.":"Unified audio downloading and sharing on Chromium and Firefox.",
     "Nova central bilíngue de boas-vindas, documentação e permissões.":"New bilingual hub for onboarding, documentation, and permissions.","Verificação automática dos acessos e abertura da central na instalação e atualização.":"Automatic access checks and hub opening on installation and update.",
     "17 ago 2026":"Aug 17, 2026","Mídias mais completas e confiáveis":"More complete and reliable media tools","Reprodução de vídeos dentro da conversa.":"Video playback inside conversations.",

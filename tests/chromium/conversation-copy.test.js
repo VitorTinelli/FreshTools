@@ -98,7 +98,7 @@ for (const platform of ["chromium", "firefox"]) {
     assert.equal(getAgentName(row("", { end: true }).message), "");
   });
 
-  test(`${platform}: formats the complete transcript with chat link and named agents`, () => {
+  test(`${platform}: formats the complete conversation with chat link and named agents`, () => {
     const api = loadConversation(platform, "Estoque");
     const messages = [
       { author: "CLIENTE", text: "Qual a origem dessas saídas?" },

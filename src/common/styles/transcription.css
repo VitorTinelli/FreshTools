@@ -1,8 +1,0 @@
-.ft-transcription { display: block; flex-basis: 100%; margin-top: 6px; font: 13px/1.5 system-ui, sans-serif; color: #243247; }
-.ft-transcription button { font: inherit; color: #245f9b; background: #fff; border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 8px; margin: 2px 6px 2px 0; cursor: pointer; }
-.ft-transcription button:hover { background: #edf4fc; }
-.ft-transcription button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-.ft-transcription > div { background: #f8fafc; border: 1px solid #dbe3ec; border-radius: 6px; padding: 8px; margin-top: 5px; max-width: 560px; }
-.ft-transcription p { margin: 0 0 8px; }
-.ft-transcription-text { white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; max-height: 280px; overflow-y: auto; }
-.ft-transcription [hidden] { display: none !important; }

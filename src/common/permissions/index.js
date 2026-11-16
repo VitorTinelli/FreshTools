@@ -12,7 +12,7 @@ const t = (message) => globalThis.FreshToolsI18n?.t(message) || message;
 
 globalThis.lucide?.createIcons();
 
-for (const element of document.querySelectorAll("[data-version]")) element.textContent = manifest.version;
+for (const element of document.querySelectorAll("[data-version]")) element.textContent = manifest.version_name || manifest.version;
 for (const origin of origins) {
   const item = document.createElement("li");
   item.textContent = origin.replace("https://*.", "").replace("https://", "").replace("/*", "");

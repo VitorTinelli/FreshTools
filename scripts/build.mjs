@@ -1,7 +1,6 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "esbuild";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const supportedTargets = ["chromium", "firefox"];
@@ -16,17 +15,6 @@ for (const target of targets) {
   await mkdir(output, { recursive: true });
   await cp(resolve(root, "src", "common"), output, { recursive: true });
   await cp(resolve(root, "src", "platforms", target), output, { recursive: true });
-  await build({
-    entryPoints: [resolve(root, 'src/common/transcription/worker.js')],
-    outfile: resolve(output, 'transcription/worker.js'),
-    bundle: true, format: 'esm', platform: 'browser', minify: true,
-    target: ['chrome120', 'firefox140'], legalComments: 'linked'
-  });
-  const ortRoot = resolve(root, 'node_modules/onnxruntime-web/dist');
-  for (const name of ['ort-wasm-simd-threaded.jsep.mjs', 'ort-wasm-simd-threaded.jsep.wasm']) {
-    await cp(resolve(ortRoot, name), resolve(output, 'transcription', name));
-  }
-  await cp(resolve(root, 'node_modules/@huggingface/transformers/LICENSE'), resolve(output, 'transcription/transformers-LICENSE.txt'));
   await mkdir(resolve(output, "vendor"), { recursive: true });
   await cp(resolve(root, "node_modules", "lucide", "dist", "umd", "lucide.min.js"), resolve(output, "vendor", "lucide.min.js"));
   await cp(resolve(root, "node_modules", "lucide", "LICENSE"), resolve(output, "vendor", "lucide-LICENSE.txt"));

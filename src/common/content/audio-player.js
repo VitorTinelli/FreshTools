@@ -40,7 +40,6 @@
     const current = pending.get(id);
     if (!current) return null;
     clearTimeout(current.timeout);
-    current.cleanup?.();
     pending.delete(id);
     return current;
   }
@@ -56,7 +55,6 @@
     return AUDIO_EXTENSION.test(hints) || AUDIO_MIME.test(hints);
   }
   function showError(current, message) {
-    if (current.reject) { current.reject(new Error(message)); return; }
     current.button.disabled = false;
     if (current.action === "vocaroo") {
       setVocarooState(current.button, "error", message || "Falha no Vocaroo — tentar novamente");
@@ -67,7 +65,6 @@
   function installResolvedPlayer(id, url) {
     const current = takePending(id);
     if (!current) return;
-    if (current.resolve) { current.resolve(url); return; }
     const player = document.createElement("audio");
     player.className = PLAYER_CLASS;
     player.controls = true;
@@ -257,34 +254,6 @@
     ));
     actions.append(button);
     attachment.append(actions, vocaroo);
-    globalThis.FreshToolsTranscription?.mount(attachment, (signal) => resolveForTranscription(attachment, download, signal));
-  }
-  function resolveForTranscription(attachment, download, signal) {
-    const player = attachment.querySelector('audio');
-    if (player && nativeAudioUrl(player)) return Promise.resolve(nativeAudioUrl(player));
-    return new Promise((resolve, reject) => {
-      const id = `ft-audio-${crypto.randomUUID()}`;
-      const abort = () => {
-        if (!takePending(id)) return;
-        runtime.sendMessage({ type: 'ft-cancel-audio-download', id }).catch(() => {});
-        reject(new DOMException('Transcrição cancelada.', 'AbortError'));
-      };
-      const current = { id, resolve, reject, cleanup: () => signal.removeEventListener('abort', abort) };
-      pending.set(id, current);
-      signal.addEventListener('abort', abort, { once: true });
-      if (signal.aborted) { abort(); return; }
-      current.timeout = setTimeout(() => {
-        if (takePending(id)) reject(new Error('O Freshchat demorou para disponibilizar o áudio. Tente novamente.'));
-      }, 10000);
-      runtime.sendMessage({ type: 'ft-arm-audio-download', id, action: 'play' }).then((response) => {
-        if (!pending.has(id)) {
-          runtime.sendMessage({ type: 'ft-cancel-audio-download', id }).catch(() => {});
-          return;
-        }
-        if (!response?.armed) throw new Error('Não foi possível acessar o áudio.');
-        download.click();
-      }).catch((error) => { if (takePending(id)) reject(error); });
-    });
   }
   function enhanceNativePlayer(player) {
     if (player.dataset.ftVocarooPlayer === "true") return;
@@ -303,7 +272,6 @@
       attachment, vocaroo, () => requestNativeAudio(player, attachment, vocaroo)
     ));
     host.appendChild(vocaroo);
-    globalThis.FreshToolsTranscription?.mount(host, () => nativeAudioUrl(player), player);
   }
   runtime.onMessage.addListener((message) => {
     if (message?.type === "ft-audio-download-url") {
@@ -320,7 +288,6 @@
     }
   });
   function installPlayers() {
-    globalThis.FreshToolsTranscription?.prune();
     document.querySelectorAll(".file-attachment").forEach(enhance);
     document.querySelectorAll("audio").forEach(enhanceNativePlayer);
   }

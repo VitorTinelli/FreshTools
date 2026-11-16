@@ -148,7 +148,6 @@
     current.panel.querySelector("audio").src = current.url;
     current.panel.querySelector(".ft-audio-recording-controls").hidden = true;
     current.panel.querySelector(".ft-audio-preview").hidden = false;
-    globalThis.FreshToolsTranscription?.mount(current.panel.querySelector('.ft-audio-preview'), () => current.blob);
     current.panel.querySelector(".ft-audio-status").textContent = "Gravação pronta";
     current.button.dataset.state = "ready";
   }
