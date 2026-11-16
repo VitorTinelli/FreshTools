@@ -39,7 +39,8 @@ test("uploads in Vocaroo-sized chunks and returns the share URL", async () => {
     return { ok: true, status: 200 };
   };
   const uploader = loadUploader(fetch);
-  const blob = new Blob([new Uint8Array(250001)], { type: "audio/ogg" });
+  const bytes = Uint8Array.from({ length: 250001 }, (_, index) => index % 251);
+  const blob = new Blob([bytes], { type: "audio/ogg" });
   const url = await uploader.upload(blob, {
     onProgress: (uploaded, total) => progress.push({ uploaded, total }),
     onPhase: (phase) => phases.push(phase)
@@ -49,6 +50,13 @@ test("uploads in Vocaroo-sized chunks and returns the share URL", async () => {
   const chunkRequests = requests.filter(({ url: requestUrl }) => requestUrl.includes("/chunk/"));
   assert.equal(chunkRequests.length, 3);
   assert.deepEqual(chunkRequests.map(({ url: requestUrl }) => Number(requestUrl.split("/").at(-1))).sort(), [0, 1, 2]);
+  const orderedChunks = [...chunkRequests].sort((a, b) => Number(a.url.split("/").at(-1)) - Number(b.url.split("/").at(-1)));
+  assert.deepEqual(orderedChunks.map(({ body }) => body.get("chunk").size), [100000, 100000, 50001]);
+  const uploaded = await Promise.all(orderedChunks.map(async ({ method, body }) => {
+    assert.equal(method, "POST");
+    return new Uint8Array(await body.get("chunk").arrayBuffer());
+  }));
+  assert.deepEqual(new Uint8Array(await new Blob(uploaded).arrayBuffer()), bytes);
   assert.equal(progress.at(-1).uploaded, blob.size);
   assert.equal(progress.at(-1).total, blob.size);
   assert.deepEqual(phases, ["connecting", "uploading", "processing", "ready"]);

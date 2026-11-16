@@ -17,20 +17,25 @@ test("shared pipeline downloads a direct audio URL with credentials and redirect
     options = value;
     return new Response(new Uint8Array([1, 2]), { status: 200, headers: { "content-type": "audio/ogg" } });
   });
-  assert.equal((await pipeline.downloadAudio("https://bucket.test/audio.ogg")).size, 2);
+  const audio = await pipeline.downloadAudio("https://bucket.test/audio.ogg");
+  assert.equal(audio.type, "audio/ogg");
+  assert.deepEqual(new Uint8Array(await audio.arrayBuffer()), new Uint8Array([1, 2]));
   assert.equal(options.credentials, "include");
   assert.equal(options.redirect, "follow");
 });
 
 test("shared pipeline resolves Freshchat JSON before downloading", async () => {
   const urls = [];
-  const pipeline = loadPipeline(async (url) => {
+  const credentials = [];
+  const pipeline = loadPipeline(async (url, options) => {
     urls.push(url);
+    credentials.push(options.credentials);
     if (urls.length === 1) return new Response(JSON.stringify({ signed_url: "https://bucket.test/audio.ogg" }), { headers: { "content-type": "application/json" } });
     return new Response(new Uint8Array([3]), { headers: { "content-type": "audio/ogg" } });
   });
   assert.equal((await pipeline.downloadAudio("https://freshchat.test/file/download?id=1")).size, 1);
   assert.deepEqual(urls, ["https://freshchat.test/file/download?id=1", "https://bucket.test/audio.ogg"]);
+  assert.deepEqual(credentials, ["include", "omit"]);
 });
 
 test("shared pipeline distinguishes HTTP and network failures", async () => {
@@ -42,11 +47,14 @@ test("shared pipeline distinguishes HTTP and network failures", async () => {
 
 test("shared pipeline rejects empty, video and oversized files", async () => {
   const empty = loadPipeline(async () => new Response(new Uint8Array(), { headers: { "content-type": "audio/ogg" } }));
-  await assert.rejects(empty.downloadAudio("https://bucket.test/a.ogg"), /vazio/);
+  await assert.rejects(empty.downloadAudio("https://bucket.test/a.ogg"), error => error.code === "empty");
+  // Isolate MIME and URL validation: either guard must work independently.
   const video = loadPipeline(async () => new Response(new Uint8Array([1]), { headers: { "content-type": "video/mp4" } }));
-  await assert.rejects(video.downloadAudio("https://bucket.test/a.mp4"), /vídeo/);
+  await assert.rejects(video.downloadAudio("https://bucket.test/file"), error => error.code === "video");
+  const disguised = loadPipeline(async () => new Response(new Uint8Array([1]), { headers: { "content-type": "application/octet-stream" } }));
+  await assert.rejects(disguised.downloadAudio("https://bucket.test/a.mp4"), error => error.code === "video");
   const large = loadPipeline(async () => new Response(new Uint8Array([1]), { headers: { "content-type": "audio/ogg", "content-length": String(25 * 1024 * 1024 + 1) } }));
-  await assert.rejects(large.downloadAudio("https://bucket.test/a.ogg"), /25 MB/);
+  await assert.rejects(large.downloadAudio("https://bucket.test/a.ogg"), error => error.code === "too-large");
 });
 
 test("shared pipeline supports cancellation during download", async () => {
@@ -61,12 +69,17 @@ test("shared pipeline supports cancellation during download", async () => {
 
 test("shared pipeline supports cancellation during upload", async () => {
   const controller = new AbortController();
+  let notifyUploadStarted;
+  const uploadStarted = new Promise(resolve => { notifyUploadStarted = resolve; });
   const pipeline = loadPipeline(
     async () => new Response(new Uint8Array([1]), { headers: { "content-type": "audio/ogg" } }),
-    (_blob, { signal }) => new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError"))))
+    (_blob, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+      notifyUploadStarted();
+    })
   );
   const result = pipeline.downloadAndUpload("https://bucket.test/a.ogg", { signal: controller.signal });
-  await new Promise((resolve) => setImmediate(resolve));
+  await uploadStarted;
   controller.abort();
   await assert.rejects(result, (error) => error.name === "AbortError");
 });

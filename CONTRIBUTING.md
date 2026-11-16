@@ -8,7 +8,7 @@ Obrigado por contribuir. O FreshTools é uma WebExtension em JavaScript puro par
 - Chrome, Edge ou outro navegador Chromium para validar o pacote Chromium;
 - Firefox 140 ou superior para validar o pacote Firefox.
 
-Não há dependências de npm para instalar.
+Execute `npm ci` para instalar as dependências com as versões do lockfile antes do build.
 
 ## Estrutura do projeto
 
@@ -46,7 +46,7 @@ Mantenha em `src/common/` apenas arquivos com comportamento idêntico. Se uma AP
 
 - Não amplie permissões nem `host_permissions` sem justificar a necessidade e testar em ambos os manifestos.
 - Preserve o isolamento entre código injetado na página, content scripts e background.
-- Recursos exclusivos do Chromium, como AudioWorklet, WASM e `declarativeNetRequest`, não podem ser incluídos no pacote Firefox.
+- Recursos exclusivos do Chromium, como seu encoder OGG/Opus, AudioWorklet de captura e `declarativeNetRequest`, não podem ser incluídos no pacote Firefox. O runtime WASM da transcrição é compartilhado e empacotado para os dois navegadores.
 - Qualquer alteração no fluxo Vocaroo deve cobrir êxito, falha, cancelamento e arquivos de vídeo recusados.
 - Não introduza dependências externas ou downloads em tempo de execução sem aprovação explícita.
 - Preserve os avisos de licença em `src/platforms/chromium/` ao atualizar o encoder OGG/Opus.

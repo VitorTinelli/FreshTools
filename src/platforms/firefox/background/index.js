@@ -60,6 +60,11 @@ async function resolveAndSend(tabId, pending, requestUrl) {
 }
 
 browser.runtime.onMessage.addListener((message, sender) => {
+  if (message?.type === 'ft-cancel-audio-download') {
+    const armed = pendingTabs.get(sender.tab?.id);
+    if (armed?.id === message.id) pendingTabs.delete(sender.tab.id);
+    return Promise.resolve({ cancelled: true });
+  }
   if (message?.type === "ft-cancel-audio-vocaroo") {
     const tabId = sender.tab?.id;
     const armed = pendingTabs.get(tabId);
