@@ -39,10 +39,14 @@ function fixture(finalGranule = 48312, secondSequence = 1) {
   ], { type: "audio/ogg" });
 }
 
-test("accepts a structurally valid OGG with matching duration", async () => {
-  const result = await context.FreshToolsAudioIntegrity.inspectOgg(fixture(), 48000, 48000);
-  assert.equal(result.encodedSeconds, 1);
-  assert.equal(result.preSkip, 312);
+test("accepts OGG metadata with matching duration at different capture sample rates", async () => {
+  // Synthetic metadata fixture, not a decodable audio file or a CRC validation.
+  for (const sampleRate of [44100, 48000]) {
+    const result = await context.FreshToolsAudioIntegrity.inspectOgg(fixture(), sampleRate, sampleRate);
+    assert.equal(result.encodedSeconds, 1);
+    assert.equal(result.expectedSeconds, 1);
+    assert.equal(result.preSkip, 312);
+  }
 });
 
 test("rejects a page sequence gap", async () => {

@@ -4,11 +4,8 @@
   const BUTTON_ID = "fd-copy-ai-conversation";
   const MENU_SELECTOR = '[data-test-id="hamburger-menu"]';
   const MESSAGE_SELECTOR = "li.user-messages";
-  const TEXT_SELECTORS = [
-    ".fc-ui-emoji-text",
-    ".fc-ui-unity-message .text",
-    ".fc-ui-message-bubble .text"
-  ];
+  const CONTENT_SELECTOR = ".fc-ui-unity-message, .fc-ui-message-bubble";
+  const AUTHOR_SELECTOR = '[data-test-id="agent-name"], [data-test-id="sender-name"], .agent-name, .sender-name, .user-name, .message-author, .fc-ui-message-author, .fc-ui-user-name';
 
   function cleanText(value) {
     return value
@@ -21,10 +18,52 @@
   }
 
   function findMessageText(message) {
-    for (const selector of TEXT_SELECTORS) {
-      const element = message.querySelector(selector);
-      const text = element ? cleanText(element.innerText || element.textContent || "") : "";
-      if (text) return text;
+    const bubbles = Array.from(message.querySelectorAll(CONTENT_SELECTOR));
+    const roots = bubbles.length
+      ? bubbles.filter((element) => !bubbles.some((other) => other !== element && other.contains(element)))
+      : [message];
+    return cleanText(roots.map((root) => {
+      const copy = root.cloneNode(true);
+      copy.querySelectorAll('button, [role="button"], .message-time, .timestamp, .reply-button, .message-actions').forEach((element) => element.remove());
+      if (root === message) copy.querySelectorAll(AUTHOR_SELECTOR).forEach((element) => element.remove());
+      copy.querySelectorAll("a[href]").forEach((link) => {
+        const href = link.getAttribute("href");
+        if (!/^(https?:|mailto:)/i.test(href || "")) return;
+        const label = cleanText(link.textContent || "") || "Anexo";
+        link.textContent = label === href ? href : label + " (" + href + ")";
+      });
+      copy.querySelectorAll("img").forEach((img) => {
+        const src = img.getAttribute("src");
+        const alt = img.getAttribute("alt");
+        img.replaceWith(document.createTextNode(img.closest("a[href]") ? "" : alt || (/^https?:/i.test(src || "") ? "[Imagem: " + src + "]" : "")));
+      });
+      copy.querySelectorAll("br").forEach((element) => element.replaceWith(document.createTextNode("\n")));
+      copy.querySelectorAll("p, div, li, blockquote").forEach((element) => element.appendChild(document.createTextNode("\n")));
+      return copy.textContent || "";
+    }).join("\n\n"));
+  }
+
+  function getAgentName(message) {
+    const group = message.closest(".chat-container-wrap");
+    const element = group?.querySelector(":scope > .user-name .name")
+      || message.querySelector(AUTHOR_SELECTOR);
+    if (element) return cleanText(element.innerText || element.textContent || "");
+    if (!group || group.querySelector(".chat-container.grp-started")) return "";
+
+    // Freshdesk shows the author only at the beginning of a visual group.
+    const isContinuation = group.matches(".grp-middle")
+      || group.querySelector(".chat-container.grp-ended");
+    if (!isContinuation) return "";
+
+    let previous = message.closest(".inbox-convo-chat")?.previousElementSibling;
+    while (previous?.matches(".inbox-convo-chat")) {
+      if (!previous.querySelector("li.fc-agent-message")) break;
+      const previousGroup = previous.querySelector(".chat-container-wrap");
+      if (!previousGroup || previousGroup.querySelector(".chat-container.grp-ended")) break;
+      const author = previousGroup.querySelector(":scope > .user-name .name");
+      if (author) return cleanText(author.innerText || author.textContent || "");
+      if (previousGroup.querySelector(".chat-container.grp-started")) break;
+      previous = previous.previousElementSibling;
     }
     return "";
   }
@@ -41,9 +80,9 @@
         if (!text) return null;
 
         const isAgent = message.classList.contains("fc-agent-message");
-        const isClient = Boolean(message.querySelector(".user-message"));
+        const name = isAgent ? getAgentName(message) : "";
         return {
-          author: isAgent ? "AGENTE" : isClient ? "CLIENTE" : "CLIENTE",
+          author: isAgent ? (name ? `AGENTE - ${name}` : "AGENTE") : "CLIENTE",
           text
         };
       })
@@ -91,7 +130,7 @@
     return document.scrollingElement;
   }
 
-  function waitForLoading(delay = 50) {
+  function waitForLoading(delay = 150) {
     return new Promise((resolve) => window.setTimeout(resolve, delay));
   }
 
@@ -109,6 +148,21 @@
     let previousCount = messages.length;
 
     try {
+      let stableAtBottom = 0;
+      for (let attempt = 0; attempt < 400; attempt += 1) {
+        button.title = `Carregando: ${messages.length} mensagens...`;
+        button.setAttribute("aria-label", button.title);
+        const count = messages.length;
+        const height = scroller.scrollHeight;
+        scroller.scrollTop = scroller.scrollHeight;
+        await waitForLoading();
+        messages = mergeOlderMessages(messages, collectMessages());
+        const atBottom = scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= 2;
+        stableAtBottom = atBottom && height === scroller.scrollHeight && count === messages.length ? stableAtBottom + 1 : 0;
+        if (stableAtBottom >= 20) break;
+      }
+      previousHeight = scroller.scrollHeight;
+      previousCount = messages.length;
       for (let attempt = 0; attempt < 400; attempt += 1) {
         button.title = `Carregando: ${messages.length} mensagens...`;
         button.setAttribute("aria-label", button.title);
@@ -143,9 +197,10 @@
     const header = [
       "CONVERSA DO FRESHDESK",
       title ? `Tópico: ${title}` : "",
+      `Link do chat: ${window.location.href}`,
       `Mensagens: ${messages.length}`,
       ""
-    ].filter((line, index) => line || index === 3);
+    ].filter((line, index) => line || index === 4);
 
     const body = messages.map(({ author, text }) => `[${author}]\n${text}`).join("\n\n");
     return `${header.join("\n")}\n${body}`.trim();

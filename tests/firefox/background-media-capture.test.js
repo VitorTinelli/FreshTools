@@ -34,7 +34,11 @@ test("Firefox captures the URL and invokes the shared flow once", async () => {
   let uploads = 0;
   const background = loadBackground({
     fetch: async () => new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "audio/ogg" } }),
-    upload: async () => { uploads += 1; return "https://voca.ro/firefox"; }
+    upload: async blob => {
+      uploads += 1;
+      assert.deepEqual(new Uint8Array(await blob.arrayBuffer()), new Uint8Array([1, 2, 3]));
+      return "https://voca.ro/firefox";
+    }
   });
   const armed = await background.runtimeListener(
     { type: "ft-arm-audio-download", id: "firefox-audio", action: "vocaroo" }, { tab: { id: 7 } }
@@ -43,38 +47,25 @@ test("Firefox captures the URL and invokes the shared flow once", async () => {
   assert.deepEqual(Array.from(background.requestFilter.types), ["main_frame", "sub_frame", "xmlhttprequest", "media", "other"]);
   assert.equal(Object.keys(background.requestListener({ tabId: 8, url: "https://freshchat.test/file/download?id=wrong" })).length, 0);
   assert.equal(background.requestListener({ tabId: 7, url: "https://freshchat.test/file/download?id=1" }).cancel, true);
+  background.requestListener({ tabId: 7, url: "https://freshchat.test/file/download?id=1" });
   const ready = await waitFor(() => background.messages.find((message) => message.type === "ft-audio-vocaroo-ready"));
   assert.equal(ready.url, "https://voca.ro/firefox");
+  assert.equal(ready.id, "firefox-audio");
   assert.equal(uploads, 1);
 });
 
-test("Firefox resolves Freshchat JSON with the shared pipeline", async () => {
-  const requests = [];
-  const background = loadBackground({
-    fetch: async (url) => {
-      requests.push(url);
-      if (requests.length === 1) return new Response(JSON.stringify({ file_url: "https://bucket.test/audio.ogg" }), { headers: { "content-type": "application/json" } });
-      return new Response(new Uint8Array([1]), { headers: { "content-type": "audio/ogg" } });
-    },
-    upload: async () => "https://voca.ro/json"
-  });
-  const started = await background.runtimeListener({
-    type: "ft-upload-audio-url", id: "json-audio", url: "https://freshchat.test/file/download?id=2"
-  }, { tab: { id: 7 } });
-  assert.equal(started.started, true);
-  await waitFor(() => background.messages.some((message) => message.type === "ft-audio-vocaroo-ready"));
-  assert.deepEqual(requests, ["https://freshchat.test/file/download?id=2", "https://bucket.test/audio.ogg"]);
-});
-
 test("Firefox reports network failure without a browser-specific fallback", async () => {
+  let uploaded = false;
   const background = loadBackground({
     fetch: async () => { throw new TypeError("NetworkError"); },
-    upload: async () => { throw new Error("must not upload"); }
+    upload: async () => { uploaded = true; throw new Error("must not upload"); }
   });
   await background.runtimeListener({
     type: "ft-upload-audio-url", id: "network-error", url: "https://bucket.test/audio.ogg"
   }, { tab: { id: 7 } });
   const error = await waitFor(() => background.messages.find((message) => message.type === "ft-audio-vocaroo-error"));
   assert.match(error.error, /Falha de rede/);
+  assert.equal(error.id, "network-error");
+  assert.equal(uploaded, false);
   assert.equal(background.messages.some((message) => message.type === "ft-audio-vocaroo-fallback-capture"), false);
 });

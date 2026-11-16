@@ -59,6 +59,8 @@ test("does not copy an invalid Vocaroo link", async () => {
   const copied = [];
   const { feedback } = loadFeedback(async (value) => copied.push(value));
 
-  await assert.rejects(feedback.copyLink("https://example.com/audio"), /link inválido/);
+  for (const url of ["https://example.com/audio", "http://voca.ro/abc", "https://voca.ro.evil.example/abc", "https://voca.ro/"]) {
+    await assert.rejects(feedback.copyLink(url), /link inválido/);
+  }
   assert.deepEqual(copied, []);
 });

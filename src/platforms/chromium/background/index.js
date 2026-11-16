@@ -1,6 +1,6 @@
 "use strict";
 
-importScripts("../content/vocaroo-upload.js", "audio-pipeline.js", "welcome.js");
+importScripts("../content/vocaroo-upload.js", "audio-pipeline.js", "welcome.js", "transcription.js");
 
 const pendingTabs = new Map();
 const uploadJobs = new Map();
@@ -70,6 +70,14 @@ async function resolveAndSend(tabId, pending, requestUrl) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === 'ft-cancel-audio-download') {
+    const armed = pendingTabs.get(sender.tab?.id);
+    if (armed?.id === message.id) {
+      pendingTabs.delete(sender.tab.id);
+      chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [armed.ruleId] }).catch(() => {});
+    }
+    sendResponse({ cancelled: true }); return false;
+  }
   if (message?.type === "ft-cancel-audio-vocaroo") {
     const tabId = sender.tab?.id;
     const armed = pendingTabs.get(tabId);
@@ -148,7 +156,3 @@ chrome.webRequest.onBeforeRequest.addListener(
   captureRequest,
   { urls: ["*://*/crm/messaging/app/public/file/download?*"] }
 );
-
-chrome.declarativeNetRequest.onRuleMatchedDebug?.addListener(({ request }) => {
-  captureRequest(request);
-});

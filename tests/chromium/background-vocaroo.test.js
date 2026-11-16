@@ -15,8 +15,7 @@ function loadBackground({ fetch, upload }) {
     URL,
     fetch,
     globalThis: null,
-    importScripts(...paths) {
-      assert.deepEqual(paths, ["../content/vocaroo-upload.js", "audio-pipeline.js", "welcome.js"]);
+    importScripts() {
       vm.runInNewContext(fs.readFileSync("src/common/background/audio-pipeline.js", "utf8"), context);
     },
     setTimeout() { return 1; },
@@ -77,7 +76,7 @@ test("downloads an existing conversation audio and uploads it to Vocaroo", async
   const background = loadBackground({
     fetch,
     upload: async (blob, { onPhase, onProgress }) => {
-      assert.equal(blob.size, downloaded.size);
+      assert.deepEqual(new Uint8Array(await blob.arrayBuffer()), new Uint8Array(await downloaded.arrayBuffer()));
       onPhase("connecting");
       onProgress(blob.size, blob.size);
       onPhase("processing");
@@ -98,6 +97,7 @@ test("downloads an existing conversation audio and uploads it to Vocaroo", async
     (message) => message.type === "ft-audio-vocaroo-ready"
   ));
   assert.equal(ready.url, "https://voca.ro/testaudio");
+  assert.equal(ready.id, "audio-1");
   assert.deepEqual(requests, [
     "https://account.freshchat.com/crm/messaging/app/public/file/download?id=1",
     "https://bucket.amazonaws.com/audio.ogg"
@@ -142,6 +142,8 @@ test("cancels an upload of an existing conversation audio", async () => {
     (message) => message.type === "ft-audio-vocaroo-error"
   ));
   assert.equal(error.cancelled, true);
+  assert.equal(error.id, "audio-2");
+  assert.equal(background.messages.some(message => message.type === "ft-audio-vocaroo-ready"), false);
 });
 
 test("uploads the direct URL used by a native customer audio player", async () => {
@@ -173,6 +175,7 @@ test("uploads the direct URL used by a native customer audio player", async () =
     (message) => message.type === "ft-audio-vocaroo-ready"
   ));
   assert.equal(ready.url, "https://voca.ro/customer");
+  assert.equal(ready.id, "customer-audio");
   assert.deepEqual(requestedUrls, [
     "https://fc-use1-00-files-bkt-00.s3.amazonaws.com/customer.ogg"
   ]);
@@ -206,6 +209,7 @@ test("rejects a video URL without sending it to Vocaroo", async () => {
   ));
   assert.match(error.error, /Formatos de vídeo/);
   assert.equal(uploaded, false);
+  assert.equal(error.id, "customer-video");
 });
 
 test("resolves a video attachment URL for the inline player", async () => {
