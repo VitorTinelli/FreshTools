@@ -24,18 +24,18 @@ Não foi executado teste de mutação nem teste em navegador. Aprovação nesta 
 | 16 | conversation-copy | Chromium: união de páginas | Mantido após reescrita anterior: repetição legítima, páginas vazias, sobreposição e ausência de mutação dos argumentos. |
 | 17 | conversation-copy | Firefox: contrato de formatação | Mantido: entry point distribuído independentemente; mesma expectativa pública. |
 | 18 | conversation-copy | Firefox: união de páginas | Mantido: mesmo contrato no código efetivamente distribuído para Firefox. |
-| 19 | transcription | Limites de tamanho e duração | Reforçado: limites fixados em 25 MiB/300 s, fronteiras inclusivas, negativos e mensagens específicas. Evita derivar toda expectativa da constante de produção. |
-| 20 | transcription | Limite real do stream | Mantido: corpo excede limite sem depender de Content-Length, exige cancelamento; inclui rejeição HTTP/vídeo e controle positivo de bytes. |
-| 21 | transcription | Autorização do handshake | Reforçado: frame de origem, outra extensão e ID divergente, além de origem, aba e consumo único. |
-| 22 | transcription | Revogação, expiração e renovação | Mantido: timer antigo não invalida ticket novo; ticket revogado ou expirado não pode ser consumido. |
-| 23 | vocaroo-feedback | Cópia e notificação temporária | Mantido: verifica clipboard, texto, visibilidade e callback de expiração sem espera real. Não testa renderização visual. |
-| 24 | vocaroo-feedback | Link inválido | Reforçado: domínio externo, HTTP, domínio semelhante e identificador vazio; nenhuma escrita no clipboard. |
-| 25 | vocaroo-upload | Upload em blocos | Mantido após reforço anterior: tamanhos, índices e reconstrução byte a byte, URL final, progresso e fases. |
-| 26 | vocaroo-upload | Rejeição pelo processamento remoto | Mantido: status explícito de falha deve produzir erro específico, diferente de falha HTTP opcional. |
-| 27 | vocaroo-upload | Status opcional indisponível | Mantido: finalize aceito com status HTTP 500 ainda retorna link utilizável. |
-| 28 | vocaroo-upload | Blob de vídeo | Mantido: valida API direta do uploader e garante zero chamadas de rede; entrada distinta do pipeline. |
-| 29 | background-media-capture | Firefox: captura única | Reforçado: dispara evento duplicado, compara bytes e ID; mantém isolamento de aba e uma chamada de upload. |
-| 30 | background-media-capture | Firefox: erro de rede | Reforçado: verifica ID e flag explícita de que upload não foi chamado, além de mensagem e ausência de fallback. |
+| 19 | vocaroo-feedback | Cópia e notificação temporária | Mantido: verifica clipboard, texto, visibilidade e callback de expiração sem espera real. Não testa renderização visual. |
+| 20 | vocaroo-feedback | Link inválido | Reforçado: domínio externo, HTTP, domínio semelhante e identificador vazio; nenhuma escrita no clipboard. |
+| 21 | vocaroo-upload | Upload em blocos | Mantido após reforço anterior: tamanhos, índices e reconstrução byte a byte, URL final, progresso e fases. |
+| 22 | vocaroo-upload | Rejeição pelo processamento remoto | Mantido: status explícito de falha deve produzir erro específico, diferente de falha HTTP opcional. |
+| 23 | vocaroo-upload | Status opcional indisponível | Mantido: finalize aceito com status HTTP 500 ainda retorna link utilizável. |
+| 24 | vocaroo-upload | Blob de vídeo | Mantido: valida API direta do uploader e garante zero chamadas de rede; entrada distinta do pipeline. |
+| 25 | background-media-capture | Firefox: captura única | Reforçado: dispara evento duplicado, compara bytes e ID; mantém isolamento de aba e uma chamada de upload. |
+| 26 | background-media-capture | Firefox: erro de rede | Reforçado: verifica ID e flag explícita de que upload não foi chamado, além de mensagem e ausência de fallback. |
+| 27 | conversation-copy | Chromium: cabeçalho do grupo | Confere a identificação do agente quando o nome está fora da mensagem. |
+| 28 | conversation-copy | Chromium: continuidade de autoria | Confere a herança do nome dentro do grupo e seu reset após a mudança de grupo. |
+| 29 | conversation-copy | Firefox: cabeçalho do grupo | Exercita a identificação do agente no código distribuído para Firefox. |
+| 30 | conversation-copy | Firefox: continuidade de autoria | Exercita a herança do nome no código distribuído para Firefox. |
 
 ## Limitações de cobertura
 
@@ -47,4 +47,4 @@ Não foi executado teste de mutação nem teste em navegador. Aprovação nesta 
 
 ## Validação
 
-`npm test`: 30 cenários passaram, nenhum ignorado ou cancelado. Alterações desta auditoria restritas aos testes e a este registro; sem mudanças de produção.
+`npm test`: 30 cenários passaram, nenhum ignorado ou cancelado.
